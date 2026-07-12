@@ -22,6 +22,7 @@ MICROGATES = {
     "NOT": [2,1,0],
     "NNOT": [2,0,0],
     "PNOT": [2,2,0],
+    "BUFF": [0,1,2],
     "NCONS": [[2,1,1],
               [1,1,1],
               [1,1,0]],
@@ -40,7 +41,28 @@ MICROGATES = {
                 [2,2,1]],
     "BI_NOR": [[2,2,1],
                [2,2,1],
-               [1,1,1]]
+               [1,1,1]],
+    "TRINAND": [[[2,2,2],
+            [2,2,2],
+            [2,2,2]],
+            [[2,2,2],
+            [2,1,1],
+            [2,1,1]],
+            [[2,2,2],
+            [2,1,1],
+            [2,1,0]]]
+}
+
+TRIGATES = {
+    "TRINAND": [[[2,2,2],
+            [2,2,2],
+            [2,2,2]],
+            [[2,2,2],
+            [2,1,1],
+            [2,1,1]],
+            [[2,2,2],
+            [2,1,1],
+            [2,1,0]]]
 }
 
 # Microsystem = few inputs, few output, many equations, hard coded & generated
@@ -52,6 +74,15 @@ MICROSYSTEMS = {
         "equations": [ # 2 layers
             Equation("NAND", [0,1], [2]),
             Equation("NOT", [2], [3])
+        ]
+    },
+    "TRIAND": {
+        "nbrstate": 5,
+        "nbrinput": 3,
+        "nbroutput": 1,
+        "equations": [ # 2 layers
+            Equation("TRINAND", [0,1,2], [3]),
+            Equation("NOT", [3], [4])
         ]
     },
     "CONS": {
@@ -208,6 +239,9 @@ class MicroSystem:
                 elif len(equation.arguments)==2:
                     if self.state[equation.arguments[0]]==3 or self.state[equation.arguments[1]]==3: next_state[equation.destinations[0]]=OUTPUT_FOR_FLOATING_INPUT
                     else: next_state[equation.destinations[0]] = MICROGATES[equation.system] [self.state[equation.arguments[0]]] [self.state[equation.arguments[1]]]
+                elif len(equation.arguments)==3:
+                    if self.state[equation.arguments[0]]==3 or self.state[equation.arguments[1]]==3 or self.state[equation.arguments[2]]==3: next_state[equation.destinations[0]]=OUTPUT_FOR_FLOATING_INPUT
+                    else: next_state[equation.destinations[0]] = MICROGATES[equation.system] [self.state[equation.arguments[0]]] [self.state[equation.arguments[1]]] [self.state[equation.arguments[2]]]
             elif type(system) is MicroSystem:
                 system.load([self.state[coord] for coord in equation.arguments])
                 system.update()
@@ -245,6 +279,9 @@ class System:
                 elif len(equation.arguments)==2:
                     if self.state[equation.arguments[0]]==3 or self.state[equation.arguments[1]]==3: next_state[equation.destinations[0]]=OUTPUT_FOR_FLOATING_INPUT
                     else: next_state[equation.destinations[0]] = MICROGATES[equation.system] [self.state[equation.arguments[0]]] [self.state[equation.arguments[1]]]
+                elif len(equation.arguments)==3:
+                    if self.state[equation.arguments[0]]==3 or self.state[equation.arguments[1]]==3 or self.state[equation.arguments[2]]==3: next_state[equation.destinations[0]]=OUTPUT_FOR_FLOATING_INPUT
+                    else: next_state[equation.destinations[0]] = MICROGATES[equation.system] [self.state[equation.arguments[0]]] [self.state[equation.arguments[1]]] [self.state[equation.arguments[2]]]
             elif type(system) is MicroSystem:
                 system.load([self.state[coord] for coord in equation.arguments])
                 system.update()
@@ -375,7 +412,7 @@ def updateCLK(state, tag2input, tag2output, data):
     if data["counter"]==0: 
         if state[tag2output["CLK"]]==2: state[tag2output["CLK"]]=1
         elif state[tag2output["CLK"]]==1: state[tag2output["CLK"]]=2
-        data["counter"] = CLK_HALF_PERIOD
+        data["counter"] = 3 #CLK_HALF_PERIOD
     data["counter"] -=1
 class Clock(NonAlgebraicSystem):
     def __init__(self):
